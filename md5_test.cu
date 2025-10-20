@@ -1,11 +1,11 @@
 /**
-~/cuda-hashing-algos/md5_test.sh
+~/j/hit_digest/md5_test.sh
 **/
 
 #include <string>
 #include <cassert>
 
-extern "C" { 
+extern "C" {
   #include "md5.cuh"
 }
 
@@ -21,19 +21,26 @@ int main()
 {
     const char* m = "hello" ;
 
-    BYTE* in = (BYTE*)m ; 
-    WORD inlen = strlen(m);
-    assert( inlen == 5 );
+    int ni = 3 ;
+    int nj = strlen(m);
 
-    WORD n_batch = 1 ; 
-    
-    unsigned char digest[16] ; 
-    BYTE* out = digest ; 
+    uint8_t* dat = new uint8_t[ni*nj] ;
+    for(int i=0 ; i < ni; i++ ) for(int j=0 ; j < nj; j++ ) dat[i*nj + j] = m[j] ;
+
+    BYTE* in = (BYTE*)dat ;
+    WORD inlen = nj ;
+    WORD n_batch = ni ;
+
+    uint8_t* digest = new uint8_t[16*ni] ;
+    BYTE* out = digest ;
 
     mcm_cuda_md5_hash_batch(in, inlen, out, n_batch);
 
-    std::string hexdigest = DescRaw( out );
-    printf("// hexdigest [%s]\n", hexdigest.c_str() );
+    for(int i=0 ; i < ni ; i++)
+    {
+        std::string hexdigest = DescRaw( digest + 16*i );
+        printf("// hexdigest [%d][%s]\n", i, hexdigest.c_str() );
+    }
 
-    return 0 ; 
+    return 0 ;
 }
